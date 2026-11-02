@@ -44,6 +44,7 @@ const UI = (function () {
       kart.dataset.grup = k.grup;
       kart.innerHTML =
         '<header class="kart-ust"><h3></h3><span class="mw"><b>0</b> MW</span></header>' +
+        '<div class="gorsel" aria-hidden="true"></div>' +
         '<p class="bilgi"></p>' +
         '<dl class="ozellik">' +
         "<dt>Kurulum (birim/MW)</dt><dd data-a='kurulum'></dd>" +
@@ -74,13 +75,14 @@ const UI = (function () {
         kart, mw: kart.querySelector(".mw b"), girdi: kart.querySelector("input"),
         kur: kart.querySelector(".btn-kur"), sok: kart.querySelector(".btn-sok"),
         maliyet: kart.querySelector(".maliyet"), kontrol: kart.querySelector(".kontrol"),
-        kilit: kart.querySelector(".kilit")
+        kilit: kart.querySelector(".kilit"), gorsel: kart.querySelector(".gorsel")
       };
       o.girdi.addEventListener("input", () => guncelle());
       o.kur.addEventListener("click", () => islem(OYUN.kur(durum, k.id, girdiMW(k.id))));
       o.sok.addEventListener("click", () => islem(OYUN.sok(durum, k.id, girdiMW(k.id))));
       kartlar[k.id] = o;
       kap.appendChild(kart);
+      GORSEL.izle(o.gorsel);
     });
   }
 
@@ -130,9 +132,22 @@ const UI = (function () {
     $("tur-notu").textContent = "Tur " + durum.tur + " · " + t.donem + " — " + t.not;
   }
 
+  // Santral görseli: durum oyun verisinden türetilir. guncelle() her tuş vuruşunda çalıştığı
+  // için yalnızca imza değişince yeniden çizilir; böylece animasyonlar başa sarmaz.
+  function gorselGuncelle(o, k, acik, mw) {
+    const gorselDurum = !acik ? "kilitli" : mw > 0 ? "acik" : "kapali";
+    const imza = GORSEL.imza(k, gorselDurum, mw);
+    if (o.gorselImza === imza) return;
+    o.gorselImza = imza;
+    o.gorsel.innerHTML = GORSEL.ciz(k, gorselDurum, mw);
+  }
+
   function kartlariGuncelle() {
+    // Dönem renkleri CSS'te; değer her seferinde oyun verisinden okunur
+    $("kartlar").dataset.donem = OYUN.turVerisi(durum).donem.startsWith("Paris") ? "paris" : "kyoto";
     VERI.kaynaklar.forEach((k) => {
       const o = kartlar[k.id], acik = OYUN.acikMi(k, durum.tur), mw = durum.kapasite[k.id];
+      gorselGuncelle(o, k, acik, mw);
       o.kart.classList.toggle("kilitli", !acik);
       o.kart.classList.toggle("yeni", acik && durum.tur > 1 && k.acilisTuru === durum.tur);
       o.kart.classList.toggle("dolu", mw > 0);

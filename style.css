@@ -156,6 +156,65 @@ input[type="number"], input[type="text"] {
 .kart.kilitli .ozellik { opacity: 0.55; }
 .kilit { font-weight: 800; font-size: 1.05rem; text-align: center; padding: 8px; border: 2px dashed #888; border-radius: 10px; }
 
+/* ---------- Santral görselleri (visuals.js) ----------
+   Hareket yalnızca transform ve opacity ile yapılır: düzen yeniden hesaplanmaz. */
+.kart > .gorsel { margin: -8px 0 0; } /* başlığa bitişik, kart genişliğinde */
+.gorsel {
+  --gok: #b9c4cb; --karartma: 0;
+  --duman-koyu: #3a3633; --duman-acik: #e4e1dc; --duman-biyo: #8d8674; --buhar: #fff;
+  height: 90px; overflow: hidden; contain: layout paint style;
+}
+.kart[data-grup="fosil"] .gorsel { --gok: #a89c8c; }
+.kart[data-id="biyokutle"] .gorsel { --gok: #bcdcc4; }
+.kart[data-id="hidro"] .gorsel { --gok: #a9cdeb; }
+.kart[data-id="ruzgar"] .gorsel { --gok: #6fbccb; }
+.kart[data-id="gunes"] .gorsel { --gok: #8ccae6; }
+.kart[data-grup="nukleer"] .gorsel { --gok: #98a2d4; }
+
+/* Paris dönemi: arka plan ve duman biraz daha koyu */
+#kartlar[data-donem="paris"] .gorsel {
+  --karartma: 0.2;
+  --duman-koyu: #211e1c; --duman-acik: #c4c0ba; --duman-biyo: #6f6a5b; --buhar: #e9ebef;
+}
+
+.g-svg { display: block; width: 100%; height: 100%; }
+.g-gok { fill: var(--gok); }
+.g-karartma { fill: #1c1917; opacity: var(--karartma); }
+.g--kapali { opacity: 0.62; filter: saturate(0.5); }
+.g--kilitli { opacity: 0.7; filter: grayscale(1); }
+
+.g-puf--koyu { fill: var(--duman-koyu); }
+.g-puf--acik { fill: var(--duman-acik); }
+.g-puf--biyo { fill: var(--duman-biyo); }
+.g-puf--buhar { fill: var(--buhar); }
+.g-puf, .g-isik { transform-box: fill-box; transform-origin: center; }
+.g-su { stroke: #d5eeff; stroke-width: 4; stroke-linecap: round; }
+
+/* Görseller yalnızca "açık" durumda hareket eder */
+.g--acik .g-puf { animation: g-duman var(--sure) linear var(--gecikme) infinite; }
+.g--acik .g-su { animation: g-su var(--sure) linear var(--gecikme) infinite; }
+.g--acik .g-rotor { animation: g-donus var(--sure) linear var(--gecikme) infinite; }
+.g--acik .g-isik { animation: g-parla var(--sure) ease-in-out var(--gecikme) infinite; }
+.gorsel.ekran-disi * { animation-play-state: paused; } /* görünmeyen kart boşuna çalışmasın */
+
+@keyframes g-duman {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+  12% { opacity: var(--yogun); }
+  100% { transform: translate(var(--dx), var(--dy)) scale(var(--olcek)); opacity: 0; }
+}
+@keyframes g-su {
+  0% { transform: translate(0, 0); opacity: 0; }
+  15%, 85% { opacity: 0.95; }
+  100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+}
+@keyframes g-donus {
+  to { transform: rotate(360deg); }
+}
+@keyframes g-parla {
+  0%, 100% { transform: scale(1); opacity: calc(var(--yogun) * 0.45); }
+  50% { transform: scale(1.3); opacity: var(--yogun); }
+}
+
 /* ---------- Karbon piyasası ---------- */
 .piyasa {
   display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px 24px; margin-top: 18px;
@@ -231,4 +290,6 @@ input[type="number"], input[type="text"] {
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
+  /* Animasyon kaldırılmaz, durdurulur: parçacıklar farklı evrelerde donar, duman yine görünür */
+  .gorsel * { animation-play-state: paused !important; }
 }
