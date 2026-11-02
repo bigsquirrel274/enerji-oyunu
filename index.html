@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Karbon Bütçesi — Enerji Şirketi Oyunu</title>
+  <meta name="description" content="Çevre ve Enerji dersi için eğitim oyunu: karbon bütçesi içinde en çok parayı kazan.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="uygulama">
+
+  <!-- ANA EKRAN -->
+  <section id="ekran-ana" class="ekran">
+    <h1>Karbon Bütçesi</h1>
+    <p class="altbaslik">Bir enerji şirketini yönet: sınırlı karbon bütçesiyle 7 turda en çok parayı kazan.</p>
+    <div class="ana-izgara">
+      <div class="panel">
+        <h2>Nasıl oynanır?</h2>
+        <ol class="adimlar">
+          <li><b>Kapasite kur:</b> Her turda açık kaynaklardan MW kur. Kurulu santraller her tur gelir de getirir, emisyon da üretir.</li>
+          <li><b>Karbon bütçesine bak:</b> Her turun bir emisyon limiti var. Fazla izni sat, açığı satın al.</li>
+          <li><b>Limiti aşma:</b> Kapatılmayan açık için fiyatın 2,5 katı ceza ödersin.</li>
+          <li><b>Turu bitir:</b> Gelir, gider ve karbon sonucu hesaplanır. 7. tur sonunda skorun belli olur.</li>
+        </ol>
+        <button id="btn-basla" class="btn btn-ana" type="button">Oyuna başla</button>
+      </div>
+      <div class="panel">
+        <h2>En iyi 10 skor</h2>
+        <ol id="skor-ana" class="skor-listesi"></ol>
+        <button id="btn-skor-temizle" class="btn btn-ikincil kucuk" type="button">Skorları temizle</button>
+      </div>
+    </div>
+    <p class="not-kucuk">Skorlar yalnızca bu tarayıcıda (localStorage) saklanır. Takma ad dışında kişisel veri toplanmaz.</p>
+  </section>
+
+  <!-- OYUN EKRANI -->
+  <section id="ekran-oyun" class="ekran" hidden>
+    <header class="ust">
+      <div class="ust-kutu">
+        <span class="etiket">Tur</span>
+        <span class="deger"><span id="ust-tur">1</span> / <span id="ust-toplam">7</span></span>
+        <span class="alt-yazi" id="ust-donem"></span>
+      </div>
+      <div class="ust-kutu">
+        <span class="etiket">Kasa</span>
+        <span class="deger" id="ust-kasa">0</span>
+        <span class="alt-yazi" id="ust-borc">birim</span>
+      </div>
+      <div class="ust-kutu genis">
+        <span class="etiket">Karbon bütçesi (bu tur)</span>
+        <span class="deger"><span id="ust-emisyon">0</span> / <span id="ust-limit">0</span> t</span>
+        <div class="cubuk" aria-hidden="true"><div id="ust-cubuk" class="cubuk-dolu"></div></div>
+      </div>
+      <div class="ust-kutu isinma">
+        <span class="etiket">Isınma göstergesi</span>
+        <span class="deger" id="ust-sicaklik">+0,00 °C</span>
+        <span class="alt-yazi">hedef: +1,5 °C</span>
+      </div>
+    </header>
+    <p id="tur-notu" class="tur-notu"></p>
+
+    <section id="kartlar" class="kartlar" aria-label="Enerji kaynakları"></section>
+
+    <section class="piyasa" aria-label="Karbon piyasası">
+      <div class="piyasa-bilgi">
+        <h2>Karbon piyasası</h2>
+        <div class="fiyat"><span class="etiket">Güncel fiyat</span><b id="pz-fiyat">0</b><span class="alt-yazi">birim / tCO₂</span></div>
+        <div class="izin">
+          <span id="pz-durum"></span>
+          <span id="pz-ceza" class="uyari"></span>
+        </div>
+      </div>
+      <div class="piyasa-islem">
+        <label for="pz-miktar">Miktar (tCO₂)</label>
+        <input id="pz-miktar" type="number" min="1" step="1" value="10" inputmode="numeric">
+        <div class="btn-sira">
+          <button id="pz-al" class="btn btn-al" type="button">Karbon al</button>
+          <button id="pz-sat" class="btn btn-sat" type="button">Karbon sat</button>
+        </div>
+        <div class="btn-sira">
+          <button id="pz-acik" class="btn btn-ikincil kucuk" type="button">Açığı kapat</button>
+          <button id="pz-fazla" class="btn btn-ikincil kucuk" type="button">Fazlayı sat</button>
+        </div>
+      </div>
+      <p class="piyasa-not">Fiyat, bu turun toplam emisyonu limite oranla yükseldikçe artar; emisyon azaldıkça düşer.</p>
+    </section>
+
+    <div class="alt-bar">
+      <button id="btn-tur-bitir" class="btn btn-ana" type="button">Turu bitir</button>
+    </div>
+  </section>
+
+  <!-- OYUN SONU EKRANI -->
+  <section id="ekran-son" class="ekran" hidden>
+    <h1>Oyun bitti</h1>
+    <div class="son-izgara">
+      <div class="panel">
+        <div class="skor-buyuk"><span class="etiket">Skorun</span><b id="son-skor">0</b></div>
+        <table class="tablo" id="son-tablo"></table>
+        <p id="son-yorum" class="yorum"></p>
+        <form id="form-skor" class="skor-form" autocomplete="off">
+          <label for="takma-ad">Takma ad (en fazla 16 karakter)</label>
+          <input id="takma-ad" type="text" maxlength="16" placeholder="Örn. Güneşli">
+          <button class="btn btn-ana" type="submit">Skoru kaydet</button>
+        </form>
+        <p id="kayit-bilgi" class="not-kucuk"></p>
+      </div>
+      <div class="panel">
+        <h2>En iyi 10 skor</h2>
+        <ol id="skor-son" class="skor-listesi"></ol>
+        <h2 class="alt-h2">Tur tur emisyon</h2>
+        <table class="tablo" id="son-turlar"></table>
+        <button id="btn-tekrar" class="btn btn-ikincil" type="button">Ana ekrana dön</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TUR SONU RAPORU -->
+  <div id="rapor" class="kaplama" hidden>
+    <div class="kutu" role="dialog" aria-modal="true" aria-labelledby="rapor-baslik">
+      <h2 id="rapor-baslik">Tur sonu raporu</h2>
+      <table class="tablo" id="rapor-tablo"></table>
+      <p id="rapor-not" class="yorum"></p>
+      <button id="btn-rapor-tamam" class="btn btn-ana" type="button">Sonraki tur</button>
+    </div>
+  </div>
+
+  <div id="mesaj" class="mesaj" role="status" aria-live="polite"></div>
+</main>
+
+<script src="data.js"></script>
+<script src="game.js"></script>
+<script src="leaderboard.js"></script>
+<script src="ui.js"></script>
+<script src="screens.js"></script>
+</body>
+</html>
